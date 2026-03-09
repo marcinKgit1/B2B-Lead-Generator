@@ -41,18 +41,35 @@ export function useLeadGenerator() {
         throw new Error(`Błąd serwera: ${response.status}`);
       }
 
-      const data = await response.json();
+      let data;
+      const rawText = await response.text();
+
+      if (!rawText || rawText.trim() === "") {
+        throw new Error(
+          "Webhook n8n zwrócił pustą odpowiedź. Sprawdź czy workflow ma podłączony node 'Respond to Webhook'."
+        );
+      }
+
+      try {
+        data = JSON.parse(rawText);
+      } catch {
+        throw new Error(
+          `Webhook zwrócił nieprawidłowy JSON. Odpowiedź: "${rawText.slice(0, 80)}..."`
+        );
+      }
 
       if (data && data[0] && data[0].text) {
         setEmail(data[0].text);
       } else {
-        throw new Error("Otrzymano nieprawidłowy format danych z n8n.");
+        throw new Error(
+          "Nieoczekiwany format odpowiedzi z n8n. Oczekiwano: [{text: '...'}]"
+        );
       }
     } catch (err) {
       console.error("Szczegóły błędu:", err);
       setError(
         err.message ||
-          "Wystąpił problem z wygenerowaniem maila. Spróbuj ponownie."
+        "Wystąpił problem z wygenerowaniem maila. Spróbuj ponownie."
       );
     } finally {
       setLoading(false);
