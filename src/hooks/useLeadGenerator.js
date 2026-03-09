@@ -38,38 +38,36 @@ export function useLeadGenerator() {
       });
 
       if (!response.ok) {
-        throw new Error(`Błąd serwera: ${response.status}`);
+        console.error(`[B2B] Błąd serwera: HTTP ${response.status}`);
+        throw new Error("Usługa jest chwilowo niedostępna. Spróbuj ponownie za chwilę lub skontaktuj się z administratorem.");
       }
 
       let data;
       const rawText = await response.text();
 
       if (!rawText || rawText.trim() === "") {
-        throw new Error(
-          "Webhook n8n zwrócił pustą odpowiedź. Sprawdź czy workflow ma podłączony node 'Respond to Webhook'."
-        );
+        console.error("[B2B] Webhook zwrócił pustą odpowiedź.");
+        throw new Error("Nie udało się wygenerować maila. Skontaktuj się z administratorem.");
       }
 
       try {
         data = JSON.parse(rawText);
       } catch {
-        throw new Error(
-          `Webhook zwrócił nieprawidłowy JSON. Odpowiedź: "${rawText.slice(0, 80)}..."`
-        );
+        console.error("[B2B] Nieprawidłowy JSON:", rawText.slice(0, 200));
+        throw new Error("Nie udało się wygenerować maila. Skontaktuj się z administratorem.");
       }
 
       if (data && data[0] && data[0].text) {
         setEmail(data[0].text);
       } else {
-        throw new Error(
-          "Nieoczekiwany format odpowiedzi z n8n. Oczekiwano: [{text: '...'}]"
-        );
+        console.error("[B2B] Nieoczekiwany format danych:", data);
+        throw new Error("Nie udało się wygenerować maila. Skontaktuj się z administratorem.");
       }
     } catch (err) {
-      console.error("Szczegóły błędu:", err);
+      console.error("[B2B] Szczegóły błędu:", err);
       setError(
         err.message ||
-        "Wystąpił problem z wygenerowaniem maila. Spróbuj ponownie."
+        "Wystąpił nieoczekiwany błąd. Skontaktuj się z administratorem."
       );
     } finally {
       setLoading(false);
