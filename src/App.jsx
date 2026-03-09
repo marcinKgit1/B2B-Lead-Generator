@@ -12,13 +12,15 @@ function App() {
   return (
     <div className="container">
       <Header />
-      <LeadForm
-        url={url}
-        onUrlChange={setUrl}
-        onSubmit={generateLead}
-        loading={loading}
-      />
-      <ErrorBox message={error} />
+      <div className="card">
+        <LeadForm
+          url={url}
+          onUrlChange={setUrl}
+          onSubmit={generateLead}
+          loading={loading}
+        />
+        <ErrorBox message={error} />
+      </div>
       <ResultBox email={email} hasError={!!error} />
     </div>
   );
